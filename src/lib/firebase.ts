@@ -1,9 +1,12 @@
 // Firebase modular SDK init.
-// Sources, in order: (1) a config JSON pasted by the user in Settings
-// (stored only in this browser's localStorage), (2) Vite env variables
-// VITE_FIREBASE_* at build time. With neither, every export below is a
-// safe no-op and the app runs entirely in local guest mode with zero errors.
-// No keys, secrets, or placeholder project values live in this file.
+// Sources, in order: (1) a config JSON pasted in Settings (stored only
+// in this browser's localStorage), (2) Vite env variables VITE_FIREBASE_*
+// at build time, (3) the built-in config below, added by the developer
+// so sign-in works out of the box with no setup from the user.
+// The built-in config is the Firebase web client config, the same public
+// config already shipped on the Summit live site. It is not a private
+// server key: Firebase web apiKeys are public client identifiers, and
+// access is governed by the project's Auth settings and Firestore rules.
 
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import {
@@ -40,6 +43,18 @@ function envConfig(): FirebaseConfig | null {
   };
 }
 
+/** Built-in developer config: sign-in works with no user setup. */
+function builtInConfig(): FirebaseConfig {
+  return {
+    apiKey: 'AIzaSyC5UfJnl5ygcUSeQihGdQfXOBscocYs8_w',
+    authDomain: 'summit-academy-b8968.firebaseapp.com',
+    projectId: 'summit-academy-b8968',
+    storageBucket: 'summit-academy-b8968.firebasestorage.app',
+    messagingSenderId: '532362317311',
+    appId: '1:532362317311:web:2d391346ec89a5215cebca',
+  };
+}
+
 function browserConfig(): FirebaseConfig | null {
   try {
     const raw = localStorage.getItem('p3ri-firebase-config');
@@ -55,7 +70,7 @@ function browserConfig(): FirebaseConfig | null {
 /** Initialise Firebase if a config is available. Safe to call repeatedly. */
 export function initFirebase(): { configured: boolean; error: string | null } {
   if (app) return { configured: true, error: null };
-  const cfg = browserConfig() || envConfig();
+  const cfg = browserConfig() || envConfig() || builtInConfig();
   if (!cfg) return { configured: false, error: null };
   try {
     app = initializeApp(cfg);
@@ -72,7 +87,7 @@ export function initFirebase(): { configured: boolean; error: string | null } {
 
 /** Forget the current app so a newly pasted config takes effect on reload. */
 export function firebaseStatus(): { configured: boolean; projectId: string | null; error: string | null } {
-  const cfg = browserConfig() || envConfig();
+  const cfg = browserConfig() || envConfig() || builtInConfig();
   return { configured: Boolean(app), projectId: cfg?.projectId ?? null, error: initError };
 }
 

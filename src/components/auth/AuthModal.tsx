@@ -34,7 +34,7 @@ export default function AuthModal({ onGuest }: { onGuest: (lastPeriodStart: stri
     <div className="overlay" role="dialog" aria-label="Welcome to P3RI">
       <div className="sheet">
         <h2>Welcome to P3RI</h2>
-        <p>Start in guest mode in seconds, or sign in to sync with your own Firebase project.</p>
+        <p>Start in guest mode in seconds, or sign in with Google to sync. Google sign-in is built in, no setup needed.</p>
         <label>When did your last period start?</label>
         <input type="date" value={last} onChange={(e) => setLast(e.target.value)} />
         <label>Average cycle length? (default 28)</label>
@@ -47,8 +47,8 @@ export default function AuthModal({ onGuest }: { onGuest: (lastPeriodStart: stri
         <button type="button" onClick={() => onGuest(last, cycle, mascot)}>Continue in Guest / Quick Mode</button>
         <button type="button" className="ghost" onClick={() => onGuest('', 28, 'plush')}>Skip, use sample dates</button>
 
-        <h3>Sign in (needs your Firebase config in Settings)</h3>
-        {!isFirebaseConfigured() && <p className="status">Firebase is not configured on this device yet, so sign-in buttons will ask you to add your config first. Guest mode works now.</p>}
+        <h3>Sign in with Google</h3>
+        {!isFirebaseConfigured() && <p className="status">Sign-in is not ready yet. Guest mode works now.</p>}
         <button type="button" className="ghost" onClick={() => run(signInWithGoogle)}>Continue with Google</button>
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
           <button type="button" className={mode === 'signin' ? '' : 'ghost'} onClick={() => setMode('signin')}>Sign In</button>
@@ -65,7 +65,8 @@ export default function AuthModal({ onGuest }: { onGuest: (lastPeriodStart: stri
           {mode === 'signin' ? 'Sign In' : 'Sign Up'}
         </button>
         {error && <p className="bad">{error}</p>}
-        <p className="status">Guest data stays on this device unless you connect your own Firebase project in Settings.</p>
+        <p className="status">Guest data stays on this device. Signing in with Google syncs your profile and logs to the cloud.</p>
+        <p className="status">Developed by H3Nz</p>
       </div>
     </div>
   );

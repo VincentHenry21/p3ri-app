@@ -245,8 +245,8 @@ export default function App() {
           </div>
 
           <div className="card">
-            <b>Optional cloud sync (Firebase, not required)</b>
-            <p className="status">Only if you want cloud sync: paste your Firebase web config JSON here. It is stored only in this browser (localStorage), never sent to Muse or committed anywhere. Live Google and email sign-in need a real Firebase project with those methods enabled. Reload the page after saving for the new config to take effect. Without it, everything still saves locally.</p>
+            <b>Google sign-in is built in</b>
+            <p className="status">Firebase and Google sign-in are already set up by the developer, no setup needed from you. The optional field below only overrides that built-in config if you ever want to use your own project. It is stored only in this browser (localStorage).</p>
             <FirebaseConfigEditor onSaved={(msg) => setFbNote(msg)} />
             <p className="status">{fbNote || (firebaseStatus().projectId ? `Config saved for project: ${firebaseStatus().projectId}` : 'No Firebase config saved. App runs in local guest mode.')}</p>
           </div>
@@ -298,6 +298,7 @@ export default function App() {
             <p className="status">{dataNote}</p>
           </div>
           <p className="status">P3RI · Local-first. Health information here is educational only and is not medical advice. If a pattern worries you, check in with a healthcare provider.</p>
+          <p className="status">Developed by H3Nz</p>
         </section>
       )}
 
