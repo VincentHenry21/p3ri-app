@@ -225,16 +225,22 @@ export default function App() {
             <p className="status">Logging: {selectedDate} · Cycle day {cycleDay(profile.lastPeriodStart, selectedDate, profile.averageCycleLength)} · {phaseForDay(cycleDay(profile.lastPeriodStart, selectedDate, profile.averageCycleLength), profile.averageCycleLength, profile.averagePeriodLength).label}</p>
             <label>Flow</label>
             <div className="segment-row">
-              {['', 'Spotting', 'Light', 'Medium', 'Heavy', 'Super Heavy'].map((f) => (
-                <button type="button" key={f || 'none'} className={`chip${selLog.flow === f ? ' on' : ''}`} onClick={() => updateLog(selectedDate, { flow: f, flowLevel: ['', 'Spotting', 'Light', 'Medium', 'Heavy', 'Super Heavy'].indexOf(f) })}>{f || 'None'}</button>
+              {(['', 'Spotting', 'Light', 'Medium', 'Heavy', 'Super Heavy'] as const).map((f) => (
+                <button type="button" key={f || 'none'} className={`chip${selLog.flow === f ? ' on' : ''}`} onClick={() => updateLog(selectedDate, { flow: f, flowLevel: ['', 'Spotting', 'Light', 'Medium', 'Heavy', 'Super Heavy'].indexOf(f) })}>
+                  <span className="flow-dot" style={{ background: ['', '#FBCFE8', '#F9A8D4', '#EC4899', '#DB2777', '#BE185D'][['', 'Spotting', 'Light', 'Medium', 'Heavy', 'Super Heavy'].indexOf(f)] }} />
+                  {f || 'None'}
+                </button>
               ))}
             </div>
             <label>Pain (0 to 10): {selLog.pain}</label>
             <input type="range" className="pain-slider" min={0} max={10} value={selLog.pain} onChange={(e) => updateLog(selectedDate, { pain: Number(e.target.value) })} />
             <label>Discharge</label>
             <div className="segment-row">
-              {['', 'Dry', 'Sticky', 'Creamy', 'Egg-white'].map((d) => (
-                <button type="button" key={d || 'none'} className={`chip${selLog.discharge === d ? ' on' : ''}`} onClick={() => updateLog(selectedDate, { discharge: d })}>{d || 'None'}</button>
+              {(['', 'Dry', 'Sticky', 'Creamy', 'Egg-white'] as const).map((d) => (
+                <button type="button" key={d || 'none'} className={`chip${selLog.discharge === d ? ' on' : ''}`} onClick={() => updateLog(selectedDate, { discharge: d })}>
+                  <span className="flow-dot" style={{ background: ['', '#FDE68A', '#FCD34D', '#FBBF24', '#38BDF8'][['', 'Dry', 'Sticky', 'Creamy', 'Egg-white'].indexOf(d)] }} />
+                  {d || 'None'}
+                </button>
               ))}
             </div>
             <label>Mood</label>
