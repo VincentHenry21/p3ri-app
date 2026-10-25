@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AuthModal from './components/auth/AuthModal';
 import HeroStage from './components/mascot/HeroStage';
+import PeriSvg from './components/mascot/PeriSvg';
 import { iconThemeForPhase, updateDynamicAppIcon, type IconTheme } from './lib/appIcons';
 import QuickActionDock from './components/dashboard/QuickActionDock';
 import TodayProgressBanner from './components/dashboard/TodayProgressBanner';
@@ -14,12 +15,12 @@ import {
   addDays, cycleDay, phaseForDay, predictedNextStart, predictedOvulation, todayISO,
 } from './lib/cycleEngine';
 import {
-  downloadFile, emptyLog, exportLogsCsv, getFirebaseConfigText, getGeminiKey,
+  downloadFile, emptyLog, exportLogsCsv, getFirebaseConfigText,
   loadLogs, loadProfile, saveLogs, saveProfile, setFirebaseConfigText, setGeminiKey,
   type DailyLog, type Profile,
 } from './lib/store';
 import {
-  firebaseStatus, initFirebase, onUserChanged, signOutUser, syncDocToFirestore,
+  initFirebase, onUserChanged, signInWithGoogle, signOutUser, syncDocToFirestore,
 } from './lib/firebase';
 import type { User } from 'firebase/auth';
 
@@ -38,6 +39,8 @@ export default function App() {
   const [fbNote, setFbNote] = useState('');
   const [apiNote, setApiNote] = useState('');
   const [dataNote, setDataNote] = useState('');
+  const [googleError, setGoogleError] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const today = todayISO();
   const day = profile ? cycleDay(profile.lastPeriodStart, today, profile.averageCycleLength) : 1;
@@ -130,8 +133,8 @@ export default function App() {
 
   return (
     <div className="app app-shell">
-      <header>
-        {tab === 'home' && (
+      {tab === 'home' ? (
+        <header>
           <div className="home-header">
             <h1>Home</h1>
             <div className="home-right">
@@ -142,14 +145,19 @@ export default function App() {
               <span className="avatar" aria-label="Profile">{avatarInitial}</span>
             </div>
           </div>
-        )}
-        <div>
-          <span className="pill">Day {day} · {phase.label}</span>{' '}
-          <span className="pill">{streak} day streak</span>
-        </div>
-        <h1>Hey {profile.displayName || 'bestie'}, ready for a good day?</h1>
-        <p className="status">{user ? `Signed in as ${user.email ?? user.uid}` : 'Guest mode · saved on this device only'}</p>
-      </header>
+          <div>
+            <span className="pill">Day {day} · {phase.label}</span>{' '}
+            <span className="pill">{streak} day streak</span>
+          </div>
+          <h1>Hey {profile.displayName || 'bestie'}, ready for a good day?</h1>
+          <p className="status">{user ? `Signed in as ${user.email ?? user.uid}` : 'Guest mode · saved on this device only'}</p>
+        </header>
+      ) : (
+        <header className="compact-header">
+          <h2>{tab === 'tracker' ? 'Tracker' : tab === 'health' ? 'Health Check' : tab === 'ask' ? 'Ask Peri' : 'Settings'}</h2>
+          <span className="pill compact">Day {day} · {phase.label} · {streak}d streak</span>
+        </header>
+      )}
 
       {tab === 'home' && (
         <section>
@@ -206,25 +214,29 @@ export default function App() {
 
       {tab === 'tracker' && (
         <section>
-          <h2>Tracker</h2>
-          <StreakHeader logs={logs} streak={streak} />
+          <StreakHeader logs={logs} streak={streak} style={profile.mascotStyle} />
           <CycleCalendar
             logs={logs} lastPeriodStart={profile.lastPeriodStart} cycleLength={profile.averageCycleLength}
             periodLength={profile.averagePeriodLength} selected={selectedDate} onSelect={setSelectedDate}
           />
+          <BentoStatsGrid logs={logs} today={todayLog} />
           <div className="card">
             <b>Daily log</b>
             <p className="status">Logging: {selectedDate} · Cycle day {cycleDay(profile.lastPeriodStart, selectedDate, profile.averageCycleLength)} · {phaseForDay(cycleDay(profile.lastPeriodStart, selectedDate, profile.averageCycleLength), profile.averageCycleLength, profile.averagePeriodLength).label}</p>
             <label>Flow</label>
-            <select value={selLog.flow} onChange={(e) => updateLog(selectedDate, { flow: e.target.value, flowLevel: ['', 'Spotting', 'Light', 'Medium', 'Heavy', 'Super Heavy'].indexOf(e.target.value) })}>
-              <option value="">None</option><option>Spotting</option><option>Light</option><option>Medium</option><option>Heavy</option><option>Super Heavy</option>
-            </select>
+            <div className="segment-row">
+              {['', 'Spotting', 'Light', 'Medium', 'Heavy', 'Super Heavy'].map((f) => (
+                <button type="button" key={f || 'none'} className={`chip${selLog.flow === f ? ' on' : ''}`} onClick={() => updateLog(selectedDate, { flow: f, flowLevel: ['', 'Spotting', 'Light', 'Medium', 'Heavy', 'Super Heavy'].indexOf(f) })}>{f || 'None'}</button>
+              ))}
+            </div>
             <label>Pain (0 to 10): {selLog.pain}</label>
-            <input type="range" min={0} max={10} value={selLog.pain} onChange={(e) => updateLog(selectedDate, { pain: Number(e.target.value) })} />
+            <input type="range" className="pain-slider" min={0} max={10} value={selLog.pain} onChange={(e) => updateLog(selectedDate, { pain: Number(e.target.value) })} />
             <label>Discharge</label>
-            <select value={selLog.discharge} onChange={(e) => updateLog(selectedDate, { discharge: e.target.value })}>
-              <option value="">None</option><option>Dry</option><option>Sticky</option><option>Creamy</option><option>Egg-white</option>
-            </select>
+            <div className="segment-row">
+              {['', 'Dry', 'Sticky', 'Creamy', 'Egg-white'].map((d) => (
+                <button type="button" key={d || 'none'} className={`chip${selLog.discharge === d ? ' on' : ''}`} onClick={() => updateLog(selectedDate, { discharge: d })}>{d || 'None'}</button>
+              ))}
+            </div>
             <label>Mood</label>
             <div className="mood-strip">
               {MOODS.map((m) => (
@@ -235,13 +247,11 @@ export default function App() {
             <textarea rows={3} value={selLog.notes} onChange={(e) => updateLog(selectedDate, { notes: e.target.value })} />
             <p className="status">Logs save automatically on this device, and sync to your Firestore when you are signed in.</p>
           </div>
-          <BentoStatsGrid logs={logs} today={todayLog} />
         </section>
       )}
 
       {tab === 'health' && (
         <section>
-          <h2>Health Check</h2>
           <HealthCheckCenter
             profile={profile} todayLog={todayLog} cycleDay={day}
             onToggleSymptom={(s) => updateLog(today, { symptoms: todayLog.symptoms.includes(s) ? todayLog.symptoms.filter((x) => x !== s) : [...todayLog.symptoms, s] })}
@@ -251,29 +261,35 @@ export default function App() {
 
       {tab === 'ask' && (
         <section>
-          <h2>Ask Peri</h2>
-          <AskPeriCoach phase={phase} cycleDay={day} mascotStyle={profile.mascotStyle} onOpenHealth={() => setTab('health')} />
+          <AskPeriCoach
+            phase={phase} cycleDay={day} mascotStyle={profile.mascotStyle}
+            logSummary={`Today's log: flow ${todayLog.flow || 'not logged'}, sleep ${todayLog.sleepHours}h, water ${todayLog.waterMl}ml, exercise ${todayLog.exerciseMinutes}min, symptoms ${todayLog.symptoms.join(', ') || 'none'}.`}
+            onOpenHealth={() => setTab('health')}
+          />
         </section>
       )}
 
       {tab === 'settings' && (
         <section>
-          <h2>Settings</h2>
-          <div className="card">
-            <b>Profile and cycle</b>
-            <label>Name</label>
+          <div className="card profile-card">
+            <b>Profile &amp; Cycle</b>
+            <label>Your Name</label>
             <input value={profile.displayName} onChange={(e) => updateProfile({ ...profile, displayName: e.target.value })} />
-            <label>Last period start</label>
-            <input type="date" value={profile.lastPeriodStart} onChange={(e) => updateProfile({ ...profile, lastPeriodStart: e.target.value })} />
-            <label>Average cycle length (days)</label>
-            <input type="number" min={21} max={45} value={profile.averageCycleLength} onChange={(e) => updateProfile({ ...profile, averageCycleLength: Number(e.target.value) || 28 })} />
-            <label>Average period length (days)</label>
-            <input type="number" min={2} max={10} value={profile.averagePeriodLength} onChange={(e) => updateProfile({ ...profile, averagePeriodLength: Number(e.target.value) || 5 })} />
-            <label>Peri style</label>
-            <select value={profile.mascotStyle} onChange={(e) => updateProfile({ ...profile, mascotStyle: e.target.value as 'plush' | 'jelly' })}>
-              <option value="plush">Plush Peri</option>
-              <option value="jelly">Jelly Cloud Peri</option>
-            </select>
+            <label>Last Period Start</label>
+            <input type="date" className="date-input" value={profile.lastPeriodStart} onChange={(e) => updateProfile({ ...profile, lastPeriodStart: e.target.value })} />
+            <label>Cycle Length</label>
+            <Stepper value={profile.averageCycleLength} min={21} max={45} suffix="d" onChange={(v) => updateProfile({ ...profile, averageCycleLength: v })} />
+            <label>Period Length</label>
+            <Stepper value={profile.averagePeriodLength} min={2} max={10} suffix="d" onChange={(v) => updateProfile({ ...profile, averagePeriodLength: v })} />
+            <label>Peri 3D Mascot Style</label>
+            <div className="mascot-picks">
+              <button type="button" className={`mascot-pick${profile.mascotStyle === 'plush' ? ' on' : ''}`} onClick={() => updateProfile({ ...profile, mascotStyle: 'plush' })} aria-pressed={profile.mascotStyle === 'plush'}>
+                <span className="mascot-preview"><PeriSvg style="plush" small /></span>Plush 3D Buddy
+              </button>
+              <button type="button" className={`mascot-pick${profile.mascotStyle === 'jelly' ? ' on' : ''}`} onClick={() => updateProfile({ ...profile, mascotStyle: 'jelly' })} aria-pressed={profile.mascotStyle === 'jelly'}>
+                <span className="mascot-preview"><PeriSvg style="jelly" small /></span>Glowing Jelly Cloud
+              </button>
+            </div>
             <p className="status">Settings save automatically.</p>
             {user && <button type="button" className="ghost" onClick={() => void signOutUser()}>Sign out</button>}
           </div>
@@ -286,8 +302,8 @@ export default function App() {
             </label>
             <div className="icon-picks">
               {([
-                { key: 'berry' as IconTheme, label: 'Berry Flame', swatch: 'linear-gradient(135deg,#FF1E27,#FF2E7E,#FF62E6)' },
-                { key: 'cloudy' as IconTheme, label: 'Cloudy Peek', swatch: 'linear-gradient(135deg,#2538FF,#4659FF,#6878FF)' },
+                { key: 'berry' as IconTheme, label: 'Berry Flame', swatch: 'linear-gradient(135deg,#FF2A5F,#FF2E7E,#FF62E6)' },
+                { key: 'cloudy' as IconTheme, label: 'Cloudy Peek', swatch: 'linear-gradient(135deg,#2538FF,#4659FF,#586BFF)' },
                 { key: 'amber' as IconTheme, label: 'Amber Luteal', swatch: 'linear-gradient(135deg,#FF8C3B,#F97316)' },
               ]).map((opt) => (
                 <button
@@ -305,28 +321,31 @@ export default function App() {
           </div>
 
           <div className="card">
-            <b>Saved locally, no Firebase needed</b>
-            <p className="status">Your profile, logs, and health checks live on this device in local storage. The app works fully without any Firebase account. Firebase below is only an optional cloud sync.</p>
-          </div>
-
-          <div className="card">
-            <b>Google sign-in is built in</b>
-            <p className="status">Firebase and Google sign-in are already set up by the developer, no setup needed from you. The optional field below only overrides that built-in config if you ever want to use your own project. It is stored only in this browser (localStorage).</p>
-            <FirebaseConfigEditor onSaved={(msg) => setFbNote(msg)} />
-            <p className="status">{fbNote || (firebaseStatus().projectId ? `Config saved for project: ${firebaseStatus().projectId}` : 'No Firebase config saved. App runs in local guest mode.')}</p>
-          </div>
-
-          <div className="card">
-            <b>Ask Peri API key (optional)</b>
-            <p className="status">Stored only in this browser. Never paste a key in chat. Clear it any time.</p>
-            <ApiKeyEditor onSaved={(msg) => setApiNote(msg)} />
-            <p className="status">{apiNote || (getGeminiKey() ? 'API key saved on this device.' : 'No API key saved. Ask Peri uses rule-based answers.')}</p>
+            <b>Cloud Sync &amp; Account</b>
+            <p className="status">{user ? `Signed in as ${user.email ?? user.uid}` : 'Guest mode · saved on this device only. Sign in to sync your data to the cloud.'}</p>
+            {!user && (
+              <button type="button" onClick={async () => { setGoogleError(''); try { await signInWithGoogle(); } catch (e) { setGoogleError(e instanceof Error ? e.message : 'Google sign-in failed.'); } }}>
+                <span style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: 8 }}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9S14.5 18.5 12 21c-2.5-2.5-3.5-5.5-3.5-9S9.5 5.5 12 3z" /></svg></span>
+                Continue with Google
+              </button>
+            )}
+            {googleError && <p className="bad">{googleError}</p>}
+            <button type="button" className="ghost accordion-toggle" onClick={() => setShowAdvanced(!showAdvanced)}>Advanced: Custom Firebase &amp; Gemini API Keys {showAdvanced ? '▾' : '▸'}</button>
+            {showAdvanced && (
+              <div className="advanced-drawer">
+                <p className="status">Optional overrides, stored only in this browser. Leave these empty to use the built-in setup.</p>
+                <FirebaseConfigEditor onSaved={(msg) => setFbNote(msg)} />
+                {fbNote && <p className="status">{fbNote}</p>}
+                <ApiKeyEditor onSaved={(msg) => setApiNote(msg)} />
+                {apiNote && <p className="status">{apiNote}</p>}
+              </div>
+            )}
+            <button type="button" className="ghost" onClick={() => downloadFile('p3ri-export.json', JSON.stringify({ profile, logs }, null, 2))}>Export Backup JSON</button>
           </div>
 
           <div className="card">
             <b>Data · local files</b>
             <p className="status">Save a backup file to your device, or restore one later. No account or cloud needed.</p>
-            <button type="button" onClick={() => downloadFile('p3ri-export.json', JSON.stringify({ profile, logs }, null, 2))}>Export JSON</button>{' '}
             <button type="button" className="ghost" onClick={() => downloadFile('p3ri-export.csv', exportLogsCsv(logs))}>Export CSV</button>{' '}
             <label>Restore from a local JSON file</label>
             <input type="file" accept=".json,application/json" onChange={(e) => {
@@ -366,12 +385,21 @@ export default function App() {
           <p className="status">Developed by H3Nz</p>
         </section>
       )}
-
       <nav className="nav" aria-label="Main navigation">
         {navItems.map(({ key, label, icon }) => (
           <button key={key} type="button" className={tab === key ? 'on' : ''} onClick={() => setTab(key)} aria-label={label}>{icon}<span>{label}</span></button>
         ))}
       </nav>
+    </div>
+  );
+}
+
+function Stepper({ value, min, max, suffix, onChange }: { value: number; min: number; max: number; suffix: string; onChange: (v: number) => void }) {
+  return (
+    <div className="stepper">
+      <button type="button" aria-label="Decrease" onClick={() => onChange(Math.max(min, value - 1))}>−</button>
+      <span>{value}{suffix}</span>
+      <button type="button" aria-label="Increase" onClick={() => onChange(Math.min(max, value + 1))}>+</button>
     </div>
   );
 }
@@ -386,7 +414,7 @@ function FirebaseConfigEditor({ onSaved }: { onSaved: (msg: string) => void }) {
           const cfg = JSON.parse(text) as { apiKey?: string; authDomain?: string; projectId?: string; appId?: string };
           if (!cfg.apiKey || !cfg.authDomain || !cfg.projectId || !cfg.appId) { onSaved('That config is missing apiKey, authDomain, projectId, or appId.'); return; }
           setFirebaseConfigText(text);
-          onSaved('Firebase config saved on this device. Reload the page to connect.');
+          onSaved('Custom Firebase config saved. Reload the page to connect.');
         } catch { onSaved('That JSON did not parse. Paste the full Firebase web config object.'); }
       }}>Save Firebase config</button>{' '}
       <button type="button" className="ghost" onClick={() => { setFirebaseConfigText(''); setText(''); onSaved('Firebase config cleared. Reload the page to return to guest mode.'); }}>Clear config</button>
