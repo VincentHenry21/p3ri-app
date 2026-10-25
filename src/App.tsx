@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AuthModal from './components/auth/AuthModal';
 import HeroStage from './components/mascot/HeroStage';
+import CoachSliderCard from './components/dashboard/CoachSliderCard';
 import PeriSvg from './components/mascot/PeriSvg';
 import JellySticker, { type StickerId } from './components/mascot/JellyStickers';
 import { FlameIcon, MovementIcon, NavIcon, SleepMoonIcon, WaterGlassIcon } from './components/icons/P3riIcons';
@@ -14,7 +15,7 @@ import BentoStatsGrid from './components/tracker/BentoStatsGrid';
 import HealthCheckCenter from './components/health/HealthCheckCenter';
 import AskPeriCoach from './components/chat/AskPeriCoach';
 import {
-  addDays, cycleDay, phaseForDay, predictedNextStart, predictedOvulation, todayISO,
+  addDays, cycleDay, phaseForDay, todayISO,
 } from './lib/cycleEngine';
 import {
   downloadFile, emptyLog, exportLogsCsv, getFirebaseConfigText,
@@ -140,25 +141,16 @@ export default function App() {
   return (
     <div className="app app-shell">
       {tab === 'home' ? (
-        <header>
-          <div className="home-header">
-            <h1>Home</h1>
-            <div className="home-right">
-              <span className="streak-pill">
-                <FlameIcon size={16} />
-                {streak}
-              </span>
-              <span className="avatar" aria-label="Profile">{avatarInitial}</span>
-            </div>
+        <header className="home-header-clean">
+          <h1>Home</h1>
+          <div className="home-right">
+            <span className="header-pill">
+              <FlameIcon size={16} />
+              {streak}
+            </span>
+            <span className="avatar-clean" aria-label="Profile">{avatarInitial}</span>
           </div>
-          <div>
-            <span className="pill">Day {day} · {phase.label}</span>{' '}
-            <span className="pill">{streak} day streak</span>
-          </div>
-          <h1>Hey {profile.displayName || 'bestie'}, ready for a good day?</h1>
-          <p className="status">{user ? `Signed in as ${user.email ?? user.uid}` : 'Guest mode · saved on this device only'}</p>
-        </header>
-      ) : (
+        </header>      ) : (
         <header className="compact-header">
           <h2>{tab === 'tracker' ? 'Tracker' : tab === 'health' ? 'Health Check' : tab === 'ask' ? 'Ask Peri' : 'Settings'}</h2>
           <span className="pill compact">Day {day} · {phase.label} · {streak}d streak</span>
@@ -168,7 +160,6 @@ export default function App() {
       {tab === 'home' && (
         <section>
           <HeroStage
-            style={profile.mascotStyle}
             speech={phase.tip}
             context={{
               phase: phase.key,
@@ -196,20 +187,14 @@ export default function App() {
               <button type="button" className="ghost small" onClick={() => setPreviewDay(null)}>Clear preview</button>
             </div>
           )}
-          <p className="status" style={{ textAlign: 'center' }}>Drag along the arc to preview another cycle day.</p>
-          <p style={{ textAlign: 'center' }} className="status">Next period: {predictedNextStart(profile.lastPeriodStart, profile.averageCycleLength)} · Ovulation: {predictedOvulation(profile.lastPeriodStart, profile.averageCycleLength)} · Cycle: {profile.averageCycleLength} days</p>
           <QuickActionDock log={todayLog} onChange={(patch) => updateLog(today, patch)} />
           <div className="bento-home">
             <div className="bento-card"><span className="bento-icon"><WaterGlassIcon size={30} /></span><span className="bento-label">Water</span><b>{Math.round(todayLog.waterMl / 250)} Glasses</b><span className="bento-sub">{(todayLog.waterMl / 1000).toFixed(1)} L</span></div>
             <div className="bento-card"><span className="bento-icon"><SleepMoonIcon size={30} /></span><span className="bento-label">Sleep</span><b>{todayLog.sleepHours} Hours</b><span className="bento-sub">of 8 h goal</span></div>
             <div className="bento-card"><span className="bento-icon"><MovementIcon size={30} /></span><span className="bento-label">Exercise</span><b>{todayLog.exerciseMinutes} Mins</b><span className="bento-sub">of 60 min goal</span></div>
           </div>
-          <TodayProgressBanner done={doneHabits.length} total={HABITS.length} next={nextHabit} style={profile.mascotStyle} />
-          <div className="card">
-            <b>Coach Peri insight</b>
-            <p>Logging symptoms for 3 days in a row helps Peri calibrate your predictions. {phase.tip}</p>
-            <button type="button" onClick={() => setTab('ask')}>Chat with Peri</button>
-          </div>
+          <TodayProgressBanner done={doneHabits.length} total={HABITS.length} next={nextHabit} />
+          <CoachSliderCard onChat={() => setTab('ask')} />
           <HabitChecklist
             completed={doneHabits}
             onToggle={(habit, done) => updateLog(today, { completedHabits: done ? [...doneHabits, habit] : doneHabits.filter((h) => h !== habit) })}
