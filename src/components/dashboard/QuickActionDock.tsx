@@ -1,4 +1,5 @@
 import type { DailyLog } from '../../lib/store';
+import { FlowDropIcon, MovementIcon, SleepMoonIcon, WaterGlassIcon } from '../icons/P3riIcons';
 import { FLOW_LABELS } from '../../lib/store';
 
 /**
@@ -27,10 +28,10 @@ function RingButton({ frac, color, onClick, label, icon }: {
   );
 }
 
-const drop = <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#312E81" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3c3.5 4.5 6 7.5 6 11a6 6 0 1 1-12 0c0-3.5 2.5-6.5 6-11z" /></svg>;
-const droplet = <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#312E81" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 1 1-12 0c0-4.5 6-11 6-11z" /></svg>;
-const bike = <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#312E81" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="17" r="3" /><circle cx="18" cy="17" r="3" /><path d="M6 17l4-9h4l2 5M10 8l2 4h6" /></svg>;
-const moon = <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#312E81" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z" /></svg>;
+const drop = <FlowDropIcon size={30} />;
+const droplet = <WaterGlassIcon size={30} />;
+const bike = <MovementIcon size={30} />;
+const moon = <SleepMoonIcon size={30} />;
 
 export default function QuickActionDock({ log, onChange }: { log: DailyLog; onChange: (patch: Partial<DailyLog>) => void }) {
   const nextFlow = () => {

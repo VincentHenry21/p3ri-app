@@ -36,7 +36,7 @@ export default function CycleCalendar({ logs, lastPeriodStart, cycleLength, peri
     else if (isFertile(iso, lastPeriodStart, cycleLength)) cls += ' fertile';
     if (iso === todayISO()) cls += ' today';
     if (iso === selected) cls += ' selected';
-    cells.push(<button type="button" key={iso} className={cls} onClick={() => onSelect(iso)}>{d}{iso === predictedOvulation(lastPeriodStart, cycleLength) ? ' ✦' : ''}</button>);
+    cells.push(<button type="button" key={iso} className={cls} onClick={() => onSelect(iso)}>{d}{iso === predictedOvulation(lastPeriodStart, cycleLength) ? (<svg viewBox="0 0 24 24" width="10" height="10" fill="#FEF08A" aria-hidden="true" className="ovul-star"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.4-6.3-4.6-6.3 4.6L8 13.6 2 9.2h7.6z" /></svg>) : null}</button>);
   }
   return (
     <div className="card">

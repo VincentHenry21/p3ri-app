@@ -1,6 +1,14 @@
 import { selectExpression, type ExpressionContext } from '../../lib/periExpressions';
 import PeriSvg from './PeriSvg';
+import JellySticker, { type StickerId } from './JellyStickers';
 import CycleArcGauge from './CycleArcGauge';
+
+/** Current Peri expression rendered as its jelly-cloud sticker badge. */
+const STICKER_FOR_EXPRESSION: Record<string, StickerId> = {
+  starry: 'starry', cookie: 'cookie', wink: 'wink', dizzy: 'dizzy',
+  sleeping: 'sleepy', sparkle: 'sparkle', book: 'reader', melting: 'puddle',
+  heart: 'loved', plush: 'loved', calm: 'calm', low: 'sensitive',
+};
 
 /**
  * One hero stage: the floating white speech bubble above Peri's head,
@@ -28,7 +36,10 @@ export default function HeroStage({ style, speech, context, day, cycleLength, co
           <CycleArcGauge day={day} cycleLength={cycleLength} color={color} onScrub={onScrub} />
         </div>
       </div>
-      <p className="status" style={{ textAlign: 'center' }}>Peri is feeling: <b>{expression.label}</b></p>
+      <div className="hero-expression">
+        <JellySticker id={STICKER_FOR_EXPRESSION[expression.id] ?? 'calm'} size={48} />
+        <p className="status">Peri is feeling: <b>{expression.label}</b></p>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { addDays, todayISO } from '../../lib/cycleEngine';
 import type { DailyLog } from '../../lib/store';
 import PeriSvg from '../mascot/PeriSvg';
+import { FlameIcon } from '../icons/P3riIcons';
 
 function hasActivity(log?: DailyLog): boolean {
   return Boolean(log && (log.flow || log.symptoms.length > 0 || log.waterMl > 0 || log.completedHabits.length > 0));
@@ -20,7 +21,7 @@ export default function StreakHeader({ logs, streak, style = 'plush' }: {
   return (
     <div className="card streak-hero">
       <div className="streak-aura"><PeriSvg style={style} small /></div>
-      <h2 className="streak-title">{streak} Day{streak === 1 ? '' : 's'} Streak</h2>
+      <h2 className="streak-title"><span className="streak-flame"><FlameIcon size={26} /></span>{streak} Day{streak === 1 ? '' : 's'} Streak</h2>
       <p className="streak-sub">Rise and Glow</p>
       <div className="ribbon">
         {days.map((d) => (

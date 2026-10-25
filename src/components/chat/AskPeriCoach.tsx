@@ -11,9 +11,9 @@ const PILLS = [
 ];
 
 const MINI_CARDS = [
-  { label: 'Exercise', tilt: '-12deg', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#312E81" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="17" r="3" /><circle cx="18" cy="17" r="3" /><path d="M6 17l4-9h4l2 5M10 8l2 4h6" /></svg> },
-  { label: 'Cycle Journal', tilt: '0deg', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#312E81" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5a3 3 0 0 1 3-3h13v18H7a3 3 0 0 0-3 3z" /><path d="M4 20V5" /></svg> },
-  { label: 'Nutrition', tilt: '12deg', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#312E81" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21c-4-3-7-6-7-10a7 7 0 0 1 14 0c0 4-3 7-7 10z" /><path d="M12 21c0-6 1-9 4-12" /></svg> },
+  { label: 'Exercise', tilt: '-12deg', lift: '0px', icon: <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0F766E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="17" r="3" /><circle cx="18" cy="17" r="3" /><path d="M6 17l4-9h4l2 5M10 8l2 4h6" /></svg> },
+  { label: 'Cycle Journal', tilt: '0deg', lift: '-8px', icon: <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#312E81" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5a3 3 0 0 1 3-3h13v18H7a3 3 0 0 0-3 3z" /><path d="M4 20V5" /><path d="M17 4v8l-2-1.5L13 12V4" fill="#22C55E" stroke="none" /></svg> },
+  { label: 'Nutrition', tilt: '12deg', lift: '0px', icon: <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 21c-4.5-3-7.5-6-7.5-10.5A7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 7.5 6.5C19.5 15 16.5 18 12 21z" fill="#F87171" /><path d="M12 21c0-6 1-9.5 4-12.5" stroke="#F87171" strokeWidth="1.6" fill="none" strokeLinecap="round" /><path d="M13 4c2-2 4-2 5-1-.5 2-2.5 3-5 1z" fill="#22C55E" /></svg> },
 ];
 
 interface Msg { role: 'me' | 'peri'; text: string; source?: string }
@@ -41,8 +41,8 @@ export default function AskPeriCoach({ phase, cycleDay, mascotStyle = 'plush', l
       <div className="ask-hero">
         <div className="ask-mini-cards">
           {MINI_CARDS.map((c) => (
-            <div key={c.label} className="ask-mini" style={{ transform: `rotate(${c.tilt})` }}>
-              {c.icon}<span>{c.label}</span>
+            <div key={c.label} className="ask-mini" style={{ transform: `rotate(${c.tilt}) translateY(${c.lift})` }}>
+              <span className="ask-mini-icon">{c.icon}</span><span>{c.label}</span>
             </div>
           ))}
         </div>

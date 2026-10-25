@@ -8,23 +8,22 @@ import type { PhaseKey } from './cycleEngine';
 export interface PeriExpression {
   id: string;
   label: string;
-  face: string;
   trigger: string;
 }
 
 export const PERI_EXPRESSIONS: PeriExpression[] = [
-  { id: 'starry', label: 'Starry-Eyed Glow', face: '🤩', trigger: 'High energy / follicular phase' },
-  { id: 'cookie', label: 'Cookie Munching', face: '🍪', trigger: 'Cravings logged' },
-  { id: 'wink', label: 'Winking Happy |<', face: '😉', trigger: 'Goal streak of 3+ days' },
-  { id: 'dizzy', label: 'Dizzy Swirl @ @', face: '😵', trigger: 'Cramps, headache, or fatigue logged' },
-  { id: 'sleeping', label: 'Peaceful Sleeping', face: '😴', trigger: '8+ hours sleep logged' },
-  { id: 'sparkle', label: 'Sparkle Burst', face: '✨', trigger: 'Ovulation peak' },
-  { id: 'book', label: 'Cozy Book Reader', face: '📖', trigger: 'Cycle journal habit logged' },
-  { id: 'melting', label: 'Melting Puddle', face: '🫠', trigger: 'Heavy flow / exhausted' },
-  { id: 'heart', label: 'Warm Heart Core', face: '💗', trigger: 'Happy mood / self-compassion' },
-  { id: 'plush', label: 'Plush Happy', face: '🌸', trigger: 'Default happy state' },
-  { id: 'calm', label: 'Calm Cloud ||', face: '😌', trigger: 'Calm mood logged' },
-  { id: 'low', label: 'Low-Energy Amber', face: '🧡', trigger: 'Luteal / PMS state' },
+  { id: 'starry', label: 'Starry-Eyed Glow', trigger: 'High energy / follicular phase' },
+  { id: 'cookie', label: 'Cookie Munching', trigger: 'Cravings logged' },
+  { id: 'wink', label: 'Winking Happy |<', trigger: 'Goal streak of 3+ days' },
+  { id: 'dizzy', label: 'Dizzy Swirl @ @', trigger: 'Cramps, headache, or fatigue logged' },
+  { id: 'sleeping', label: 'Peaceful Sleeping', trigger: '8+ hours sleep logged' },
+  { id: 'sparkle', label: 'Sparkle Burst', trigger: 'Ovulation peak' },
+  { id: 'book', label: 'Cozy Book Reader', trigger: 'Cycle journal habit logged' },
+  { id: 'melting', label: 'Melting Puddle', trigger: 'Heavy flow / exhausted' },
+  { id: 'heart', label: 'Warm Heart Core', trigger: 'Happy mood / self-compassion' },
+  { id: 'plush', label: 'Plush Happy', trigger: 'Default happy state' },
+  { id: 'calm', label: 'Calm Cloud ||', trigger: 'Calm mood logged' },
+  { id: 'low', label: 'Low-Energy Amber', trigger: 'Luteal / PMS state' },
 ];
 
 export interface ExpressionContext {

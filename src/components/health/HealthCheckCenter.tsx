@@ -22,13 +22,13 @@ function miniIcon(symptom: string): React.ReactNode {
   const p = { viewBox: '0 0 24 24', width: 16, height: 16, fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
   switch (symptom) {
     case 'Cramps': return <svg {...p}><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" /></svg>;
-    case 'Tender breasts': return <svg {...p}><circle cx="9" cy="10" r="4" /><circle cx="16" cy="10" r="4" /></svg>;
-    case 'Bloating': return <svg {...p}><circle cx="12" cy="12" r="8" /><path d="M12 8v8" /></svg>;
-    case 'Headache': return <svg {...p}><circle cx="12" cy="12" r="8" /><path d="M9 12h6" /></svg>;
+    case 'Tender breasts': return <svg {...p}><path d="M12 20c-4-2-6-5-6-9 2 0 4 1 6 3 2-2 4-3 6-3 0 4-2 7-6 9z" /><path d="M12 14c0-3 0-6-2-8M12 14c0-3 0-6 2-8" /></svg>;
+    case 'Bloating': return <svg {...p}><circle cx="12" cy="13" r="7" /><path d="M18 4l.6 1.5 1.5.6-1.5.6L18 8.2 17.4 6.7 15.9 6.1 17.4 5.5zM9 20l.4 1 1 .4-1 .4L9 22.8 8.6 21.8 7.6 21.4 8.6 21z" fill="currentColor" stroke="none" /></svg>;
+    case 'Headache': return <svg {...p}><path d="M3 12h4l2-6 3 12 2-6h7" /></svg>;
     case 'Lower back ache': return <svg {...p}><path d="M4 18c4-2 4-8 8-10M12 8l4-2M16 6l2 3" /></svg>;
     case 'Acne': return <svg {...p}><circle cx="8" cy="9" r="2" /><circle cx="16" cy="8" r="2" /><circle cx="12" cy="16" r="2" /></svg>;
     case 'Ovulation twinge': return <svg {...p}><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" /></svg>;
-    case 'Fatigue': return <svg {...p}><rect x="3" y="8" width="16" height="9" rx="2" /><path d="M21 11v3M7 11v3" /></svg>;
+    case 'Fatigue': return <svg {...p}><rect x="2" y="8" width="17" height="9" rx="2" /><path d="M21 11v3" /><rect x="5" y="11" width="4" height="3" fill="currentColor" stroke="none" /></svg>;
     case 'Anxious': return <svg {...p}><path d="M3 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0" /></svg>;
     case 'Irritable': return <svg {...p}><path d="M12 3c1 3-1 5-1 8a4 4 0 0 0 8 0c0-2-1-3-2-4 .5 2-1 3-2 3-.5-2 0-4-3-7z" /></svg>;
     case 'Brain fog': return <svg {...p}><path d="M7 17a4 4 0 1 1 1-8 5 5 0 0 1 9 2 3.5 3.5 0 0 1-2 6z" /></svg>;

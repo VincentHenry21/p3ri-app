@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import AuthModal from './components/auth/AuthModal';
 import HeroStage from './components/mascot/HeroStage';
 import PeriSvg from './components/mascot/PeriSvg';
+import JellySticker, { type StickerId } from './components/mascot/JellyStickers';
+import { FlameIcon, MovementIcon, NavIcon, SleepMoonIcon, WaterGlassIcon } from './components/icons/P3riIcons';
 import { iconThemeForPhase, updateDynamicAppIcon, type IconTheme } from './lib/appIcons';
 import QuickActionDock from './components/dashboard/QuickActionDock';
 import TodayProgressBanner from './components/dashboard/TodayProgressBanner';
@@ -25,6 +27,12 @@ import {
 import type { User } from 'firebase/auth';
 
 export const MOODS = ['Energized', 'Calm', 'Anxious', 'Irritable', 'Brain fog', 'Extra sensitive', 'Cravings', 'Happy', 'Low energy', 'Sleepy', 'Starry', 'Cozy'];
+
+const MOOD_STICKERS: Record<string, StickerId> = {
+  Energized: 'sparkle', Calm: 'calm', Anxious: 'sensitive', Irritable: 'dizzy',
+  'Brain fog': 'fog', 'Extra sensitive': 'sensitive', Cravings: 'cookie',
+  Happy: 'loved', 'Low energy': 'sleepy', Sleepy: 'sleepy', Starry: 'starry', Cozy: 'reader',
+};
 
 type Tab = 'home' | 'tracker' | 'health' | 'ask' | 'settings';
 
@@ -123,13 +131,11 @@ export default function App() {
   const doneHabits = todayLog.completedHabits;
   const nextHabit = HABITS.find((h) => !doneHabits.includes(h)) ?? '';
   const avatarInitial = (profile.displayName || user?.email || 'P').trim().charAt(0).toUpperCase() || 'P';
-  const navItems = [
-    { key: 'home' as Tab, label: 'Home', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg> },
-    { key: 'tracker' as Tab, label: 'Tracker', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18M8 3v4M16 3v4" /></svg> },
-    { key: 'health' as Tab, label: 'Health', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21C7 16.5 3 13 3 8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 2.5c0 4.5-4 8-9 12.5z" /></svg> },
-    { key: 'ask' as Tab, label: 'Ask Peri', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z" /></svg> },
-    { key: 'settings' as Tab, label: 'Settings', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" /></svg> },
-  ];
+  const navItems = (['home', 'tracker', 'health', 'ask', 'settings'] as Tab[]).map((key) => ({
+    key,
+    label: key === 'home' ? 'Home' : key === 'tracker' ? 'Tracker' : key === 'health' ? 'Health' : key === 'ask' ? 'Ask Peri' : 'Settings',
+    icon: <NavIcon tab={key} active={tab === key} />,
+  }));
 
   return (
     <div className="app app-shell">
@@ -139,7 +145,7 @@ export default function App() {
             <h1>Home</h1>
             <div className="home-right">
               <span className="streak-pill">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="#F97316" aria-hidden="true"><path d="M12 2c1 4-2 6-2 10a4 4 0 0 0 8 0c0-2-1-3-2-4 .5 2-1 3-2 3-.5-3 0-6-2-9z" /></svg>
+                <FlameIcon size={16} />
                 {streak}
               </span>
               <span className="avatar" aria-label="Profile">{avatarInitial}</span>
@@ -184,8 +190,8 @@ export default function App() {
               <p>
                 {phaseForDay(previewDay, profile.averageCycleLength, profile.averagePeriodLength).label} ·{' '}
                 {addDays(profile.lastPeriodStart, previewDay - 1)}
-                {previewDay === profile.averageCycleLength - 14 ? ' · Ovulation day ✦' : ''}
-                {previewDay >= profile.averageCycleLength - 14 - 5 && previewDay < profile.averageCycleLength - 14 ? ' · Fertile window' : ''}
+                {previewDay === profile.averageCycleLength - 14 ? ' · Ovulation day ' : ''}
+                {previewDay >= profile.averageCycleLength - 14 - 5 && previewDay < profile.averageCycleLength - 14 ? ' · Fertile window' : ''}{previewDay === profile.averageCycleLength - 14 && (<svg viewBox="0 0 24 24" width="13" height="13" fill="#FBBF24" aria-hidden="true" style={{ verticalAlign: 'middle' }}><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.4-6.3-4.6-6.3 4.6L8 13.6 2 9.2h7.6z" /></svg>)}
               </p>
               <button type="button" className="ghost small" onClick={() => setPreviewDay(null)}>Clear preview</button>
             </div>
@@ -194,9 +200,9 @@ export default function App() {
           <p style={{ textAlign: 'center' }} className="status">Next period: {predictedNextStart(profile.lastPeriodStart, profile.averageCycleLength)} · Ovulation: {predictedOvulation(profile.lastPeriodStart, profile.averageCycleLength)} · Cycle: {profile.averageCycleLength} days</p>
           <QuickActionDock log={todayLog} onChange={(patch) => updateLog(today, patch)} />
           <div className="bento-home">
-            <div className="bento-card"><span className="bento-label">Water</span><b>{Math.round(todayLog.waterMl / 250)} Glasses</b><span className="bento-sub">{(todayLog.waterMl / 1000).toFixed(1)} L</span></div>
-            <div className="bento-card"><span className="bento-label">Sleep</span><b>{todayLog.sleepHours} Hours</b><span className="bento-sub">of 8 h goal</span></div>
-            <div className="bento-card"><span className="bento-label">Exercise</span><b>{todayLog.exerciseMinutes} Mins</b><span className="bento-sub">of 60 min goal</span></div>
+            <div className="bento-card"><span className="bento-icon"><WaterGlassIcon size={30} /></span><span className="bento-label">Water</span><b>{Math.round(todayLog.waterMl / 250)} Glasses</b><span className="bento-sub">{(todayLog.waterMl / 1000).toFixed(1)} L</span></div>
+            <div className="bento-card"><span className="bento-icon"><SleepMoonIcon size={30} /></span><span className="bento-label">Sleep</span><b>{todayLog.sleepHours} Hours</b><span className="bento-sub">of 8 h goal</span></div>
+            <div className="bento-card"><span className="bento-icon"><MovementIcon size={30} /></span><span className="bento-label">Exercise</span><b>{todayLog.exerciseMinutes} Mins</b><span className="bento-sub">of 60 min goal</span></div>
           </div>
           <TodayProgressBanner done={doneHabits.length} total={HABITS.length} next={nextHabit} style={profile.mascotStyle} />
           <div className="card">
@@ -246,7 +252,7 @@ export default function App() {
             <label>Mood</label>
             <div className="mood-strip">
               {MOODS.map((m) => (
-                <button type="button" key={m} className={`chip${selLog.moods.includes(m) ? ' on' : ''}`} onClick={() => updateLog(selectedDate, { moods: selLog.moods.includes(m) ? selLog.moods.filter((x) => x !== m) : [...selLog.moods, m] })}>{m}</button>
+                <button type="button" key={m} className={`chip${selLog.moods.includes(m) ? ' on' : ''}`} onClick={() => updateLog(selectedDate, { moods: selLog.moods.includes(m) ? selLog.moods.filter((x) => x !== m) : [...selLog.moods, m] })}>{MOOD_STICKERS[m] && (<span className="mood-sticker"><JellySticker id={MOOD_STICKERS[m]} size={20} /></span>)}{m}</button>
               ))}
             </div>
             <label>Notes</label>
