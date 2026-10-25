@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PeriSvg from '../mascot/PeriSvg';
 import { askPeri } from '../../lib/askPeri';
 import type { Phase } from '../../lib/cycleEngine';
 
@@ -6,7 +7,7 @@ const PILLS = ['Why am I cramping today?', 'Cycle-sync my workout', 'Best foods 
 
 interface Msg { role: 'me' | 'peri'; text: string; source?: string }
 
-export default function AskPeriCoach({ phase, cycleDay, onOpenHealth }: { phase: Phase; cycleDay: number; onOpenHealth: () => void }) {
+export default function AskPeriCoach({ phase, cycleDay, mascotStyle = 'plush', onOpenHealth }: { phase: Phase; cycleDay: number; mascotStyle?: 'plush' | 'jelly'; onOpenHealth: () => void }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
@@ -25,7 +26,7 @@ export default function AskPeriCoach({ phase, cycleDay, onOpenHealth }: { phase:
   return (
     <div>
       <div className="card" style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 56 }}>🌸</div>
+        <div style={{ width: 110, margin: '0 auto' }}><PeriSvg style={mascotStyle} phase={phase.key} small /></div>
         <b>Hello, how can I help you?</b>
         <p className="status">Your little buddy for a healthier, happier cycle</p>
         <button type="button" className="ghost" onClick={onOpenHealth}>Prepare my doctor summary</button>

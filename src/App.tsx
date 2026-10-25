@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AuthModal from './components/auth/AuthModal';
-import PeriMascot3D from './components/mascot/PeriMascot3D';
-import CycleArcGauge from './components/mascot/CycleArcGauge';
+import HeroStage from './components/mascot/HeroStage';
+import { iconThemeForPhase, updateDynamicAppIcon, type IconTheme } from './lib/appIcons';
 import QuickActionDock from './components/dashboard/QuickActionDock';
 import TodayProgressBanner from './components/dashboard/TodayProgressBanner';
 import HabitChecklist, { HABITS } from './components/dashboard/HabitChecklist';
@@ -65,7 +65,17 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.style.setProperty('--topbleed', phase.bleed);
-  }, [phase.bleed]);
+    document.documentElement.style.setProperty('--bg-top-bleed', phase.bleed);
+    document.documentElement.style.setProperty('--accent-primary', phase.color);
+  }, [phase.bleed, phase.color]);
+
+  // Dynamic home-screen icon: auto-switch by cycle phase, or the manual pick.
+  useEffect(() => {
+    const theme: IconTheme = profile?.iconAuto !== false
+      ? iconThemeForPhase(phase.key)
+      : (profile?.iconTheme ?? 'berry');
+    updateDynamicAppIcon(theme);
+  }, [phase.key, profile?.iconAuto, profile?.iconTheme]);
 
   const updateProfile = (p: Profile) => {
     setProfile(p);
@@ -99,30 +109,51 @@ export default function App() {
       displayName: '', email: '', createdAt: new Date().toISOString(),
       averageCycleLength: cycleLength, averagePeriodLength: 5,
       lastPeriodStart: lastPeriodStart || todayISO(), mascotStyle, notificationsEnabled: false,
+      iconTheme: 'berry', iconAuto: true,
     };
     updateProfile(p);
   };
 
-  if (!profile) return <div className="app"><AuthModal onGuest={startGuest} /></div>;
+  if (!profile) return <div className="app app-shell"><AuthModal onGuest={startGuest} /></div>;
 
   const selLog = logs[selectedDate] ?? emptyLog(selectedDate);
   const doneHabits = todayLog.completedHabits;
   const nextHabit = HABITS.find((h) => !doneHabits.includes(h)) ?? '';
+  const avatarInitial = (profile.displayName || user?.email || 'P').trim().charAt(0).toUpperCase() || 'P';
+  const navItems = [
+    { key: 'home' as Tab, label: 'Home', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg> },
+    { key: 'tracker' as Tab, label: 'Tracker', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18M8 3v4M16 3v4" /></svg> },
+    { key: 'health' as Tab, label: 'Health', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21C7 16.5 3 13 3 8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 2.5c0 4.5-4 8-9 12.5z" /></svg> },
+    { key: 'ask' as Tab, label: 'Ask Peri', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z" /></svg> },
+    { key: 'settings' as Tab, label: 'Settings', icon: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" /></svg> },
+  ];
 
   return (
-    <div className="app">
+    <div className="app app-shell">
       <header>
+        {tab === 'home' && (
+          <div className="home-header">
+            <h1>Home</h1>
+            <div className="home-right">
+              <span className="streak-pill">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="#F97316" aria-hidden="true"><path d="M12 2c1 4-2 6-2 10a4 4 0 0 0 8 0c0-2-1-3-2-4 .5 2-1 3-2 3-.5-3 0-6-2-9z" /></svg>
+                {streak}
+              </span>
+              <span className="avatar" aria-label="Profile">{avatarInitial}</span>
+            </div>
+          </div>
+        )}
         <div>
           <span className="pill">Day {day} · {phase.label}</span>{' '}
           <span className="pill">{streak} day streak</span>
         </div>
         <h1>Hey {profile.displayName || 'bestie'}, ready for a good day?</h1>
-        <p className="status">{user ? `Signed in as ${user.email ?? user.uid}` : firebaseStatus().projectId ? 'Firebase config saved on this device' : 'Guest mode · saved on this device only'}</p>
+        <p className="status">{user ? `Signed in as ${user.email ?? user.uid}` : 'Guest mode · saved on this device only'}</p>
       </header>
 
       {tab === 'home' && (
         <section>
-          <PeriMascot3D
+          <HeroStage
             style={profile.mascotStyle}
             speech={phase.tip}
             context={{
@@ -134,8 +165,11 @@ export default function App() {
               streak,
               journalDone: todayLog.completedHabits.includes('Write cycle journal'),
             }}
+            day={day}
+            cycleLength={profile.averageCycleLength}
+            color={phase.color}
+            onScrub={setPreviewDay}
           />
-          <CycleArcGauge day={day} cycleLength={profile.averageCycleLength} color={phase.color} onScrub={setPreviewDay} />
           {previewDay !== null && (
             <div className="card">
               <b>Arc preview: Day {previewDay}</b>
@@ -151,7 +185,12 @@ export default function App() {
           <p className="status" style={{ textAlign: 'center' }}>Drag along the arc to preview another cycle day.</p>
           <p style={{ textAlign: 'center' }} className="status">Next period: {predictedNextStart(profile.lastPeriodStart, profile.averageCycleLength)} · Ovulation: {predictedOvulation(profile.lastPeriodStart, profile.averageCycleLength)} · Cycle: {profile.averageCycleLength} days</p>
           <QuickActionDock log={todayLog} onChange={(patch) => updateLog(today, patch)} />
-          <TodayProgressBanner done={doneHabits.length} total={HABITS.length} next={nextHabit} />
+          <div className="bento-home">
+            <div className="bento-card"><span className="bento-label">Water</span><b>{Math.round(todayLog.waterMl / 250)} Glasses</b><span className="bento-sub">{(todayLog.waterMl / 1000).toFixed(1)} L</span></div>
+            <div className="bento-card"><span className="bento-label">Sleep</span><b>{todayLog.sleepHours} Hours</b><span className="bento-sub">of 8 h goal</span></div>
+            <div className="bento-card"><span className="bento-label">Exercise</span><b>{todayLog.exerciseMinutes} Mins</b><span className="bento-sub">of 60 min goal</span></div>
+          </div>
+          <TodayProgressBanner done={doneHabits.length} total={HABITS.length} next={nextHabit} style={profile.mascotStyle} />
           <div className="card">
             <b>Coach Peri insight</b>
             <p>Logging symptoms for 3 days in a row helps Peri calibrate your predictions. {phase.tip}</p>
@@ -187,7 +226,7 @@ export default function App() {
               <option value="">None</option><option>Dry</option><option>Sticky</option><option>Creamy</option><option>Egg-white</option>
             </select>
             <label>Mood</label>
-            <div>
+            <div className="mood-strip">
               {MOODS.map((m) => (
                 <button type="button" key={m} className={`chip${selLog.moods.includes(m) ? ' on' : ''}`} onClick={() => updateLog(selectedDate, { moods: selLog.moods.includes(m) ? selLog.moods.filter((x) => x !== m) : [...selLog.moods, m] })}>{m}</button>
               ))}
@@ -213,7 +252,7 @@ export default function App() {
       {tab === 'ask' && (
         <section>
           <h2>Ask Peri</h2>
-          <AskPeriCoach phase={phase} cycleDay={day} onOpenHealth={() => setTab('health')} />
+          <AskPeriCoach phase={phase} cycleDay={day} mascotStyle={profile.mascotStyle} onOpenHealth={() => setTab('health')} />
         </section>
       )}
 
@@ -237,6 +276,32 @@ export default function App() {
             </select>
             <p className="status">Settings save automatically.</p>
             {user && <button type="button" className="ghost" onClick={() => void signOutUser()}>Sign out</button>}
+          </div>
+
+          <div className="card">
+            <b>App Icon</b>
+            <label className="icon-toggle">
+              <input type="checkbox" checked={profile.iconAuto !== false} onChange={(e) => updateProfile({ ...profile, iconAuto: e.target.checked })} />
+              <span>Auto-Switch App Icon by Cycle Phase</span>
+            </label>
+            <div className="icon-picks">
+              {([
+                { key: 'berry' as IconTheme, label: 'Berry Flame', swatch: 'linear-gradient(135deg,#FF1E27,#FF2E7E,#FF62E6)' },
+                { key: 'cloudy' as IconTheme, label: 'Cloudy Peek', swatch: 'linear-gradient(135deg,#2538FF,#4659FF,#6878FF)' },
+                { key: 'amber' as IconTheme, label: 'Amber Luteal', swatch: 'linear-gradient(135deg,#FF8C3B,#F97316)' },
+              ]).map((opt) => (
+                <button
+                  key={opt.key} type="button"
+                  className={`icon-pick${profile.iconAuto === false && profile.iconTheme === opt.key ? ' on' : ''}`}
+                  onClick={() => updateProfile({ ...profile, iconTheme: opt.key, iconAuto: false })}
+                  aria-pressed={profile.iconAuto === false && profile.iconTheme === opt.key}
+                >
+                  <span className="icon-swatch" style={{ background: opt.swatch }} />
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p className="status">Auto-switch follows your phase: Berry Flame on menstrual days, Cloudy Peek on follicular and ovulatory days, Amber Luteal on luteal days. Picking one manually turns auto-switch off.</p>
           </div>
 
           <div className="card">
@@ -303,8 +368,8 @@ export default function App() {
       )}
 
       <nav className="nav" aria-label="Main navigation">
-        {([['home', '🏠', 'Home'], ['tracker', '📅', 'Tracker'], ['health', '🩺', 'Health'], ['ask', '💬', 'Ask Peri'], ['settings', '⚙️', 'Settings']] as const).map(([key, icon, label]) => (
-          <button key={key} type="button" className={tab === key ? 'on' : ''} onClick={() => setTab(key)}>{icon}<br />{label}</button>
+        {navItems.map(({ key, label, icon }) => (
+          <button key={key} type="button" className={tab === key ? 'on' : ''} onClick={() => setTab(key)} aria-label={label}>{icon}<span>{label}</span></button>
         ))}
       </nav>
     </div>

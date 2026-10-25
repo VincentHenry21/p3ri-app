@@ -11,6 +11,8 @@ export interface Profile {
   lastPeriodStart: string;
   mascotStyle: 'plush' | 'jelly';
   notificationsEnabled: boolean;
+  iconTheme?: 'berry' | 'cloudy' | 'amber';
+  iconAuto?: boolean;
 }
 
 export interface DailyLog {
